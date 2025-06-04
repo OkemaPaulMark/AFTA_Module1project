@@ -45,15 +45,6 @@ if submitted:
     except requests.exceptions.RequestException as e:
         st.error(f"Connection Error: {e}")
 
-        try:
-            # Monthly payment formula: P * r * (1+r)^n / ((1+r)^n - 1)
-            monthly_payment = loan_amount * monthly_rate * (1 + monthly_rate) ** months / ((1 + monthly_rate) ** months - 1)
-            total_payment = monthly_payment * months
-
-            st.success(f"📆 Monthly Payment: UGX {monthly_payment:,.0f}")
-            st.info(f"💵 Total Repayment Over {repayment_years} years: UGX {total_payment:,.0f}")
-        except ZeroDivisionError:
-            st.error("Error: Cannot divide by zero. Please check your interest rate and period.")
 
 # Footer
 st.markdown("---")
