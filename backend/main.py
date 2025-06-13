@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import pandas as pd
 
 app = FastAPI()
 
-# Updated model to match frontend
 class LoanRequest(BaseModel):
     salary: float
     loan_amount: float
@@ -28,10 +28,32 @@ def calculate_loan(data: LoanRequest):
         )
         total_payment = monthly_payment * months
 
+        # Build amortization schedule using pandas
+        schedule = []
+        balance = data.loan_amount
+
+        for month in range(1, months + 1):
+            interest_payment = balance * monthly_rate
+            principal_payment = monthly_payment - interest_payment
+            balance -= principal_payment
+            if balance < 0:
+                balance = 0
+
+            schedule.append({
+                "Month": month,
+                "Monthly Payment": round(monthly_payment, 2),
+                "Principal": round(principal_payment, 2),
+                "Interest": round(interest_payment, 2),
+                "Remaining Balance": round(balance, 2),
+            })
+
+        df_schedule = pd.DataFrame(schedule)
+
         return {
             "monthly_payment": round(monthly_payment, 2),
             "total_payment": round(total_payment, 2),
-            "duration_months": months
+            "duration_months": months,
+            "schedule": df_schedule.to_dict(orient="records")  # Send schedule as list of dicts
         }
     except ZeroDivisionError:
         return {"error": "Invalid interest rate or duration."}
